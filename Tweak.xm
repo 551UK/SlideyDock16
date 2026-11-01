@@ -64,6 +64,13 @@ static BOOL IF16TweakEnabled(void) {
     return value != nil ? [value boolValue] : YES;
 }
 
+// Fixed Dock mode keeps the complete icon model in place, but prevents
+// horizontal scrolling; restoring scrolling reveals any off-screen apps.
+static BOOL IF16ScrollingEnabled(void) {
+    id value = IF16PreferenceValue(@"ScrollingEnabled");
+    return value != nil ? [value boolValue] : YES;
+}
+
 static BOOL IF16PagingEnabled(void) {
     id value = IF16PreferenceValue(@"PagingEnabled");
     return value != nil ? [value boolValue] : YES;
@@ -85,13 +92,14 @@ static NSUInteger IF16IconsPerPage(void) {
 static void IF16WriteDiagnostics(NSString *phase, SBDockIconListView *listView) {
     NSFileManager *fileManager = NSFileManager.defaultManager;
     NSMutableDictionary *report = [NSMutableDictionary dictionary];
-    report[@"Build"] = @"1.3.0-1";
+    report[@"Build"] = @"1.4.0-1";
     report[@"Phase"] = phase ?: @"unknown";
     report[@"Timestamp"] = [NSDate date];
     report[@"SystemVersion"] = NSProcessInfo.processInfo.operatingSystemVersionString;
     report[@"EnableMarkerExists"] = @([fileManager fileExistsAtPath:IF16EnableMarker]);
     report[@"MasterEnabled"] = @(IF16TweakEnabled());
     report[@"PagingEnabled"] = @(IF16PagingEnabled());
+    report[@"ScrollingEnabled"] = @(IF16ScrollingEnabled());
     report[@"VisibleIconsPerPage"] = @(IF16IconsPerPage());
     report[@"LegacyRootDockClass"] =
         NSStringFromClass(NSClassFromString(@"SBRootFolderDockIconListView")) ?: @"missing";
@@ -261,13 +269,14 @@ static void IF16InstallScrollViewIfNeeded(SBDockIconListView *listView) {
     scrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     scrollView.backgroundColor = UIColor.clearColor;
     scrollView.clipsToBounds = YES;
-    scrollView.pagingEnabled = IF16PagingEnabled();
+    scrollView.scrollEnabled = IF16ScrollingEnabled();
+    scrollView.pagingEnabled = IF16ScrollingEnabled() && IF16PagingEnabled();
     scrollView.decelerationRate =
         scrollView.pagingEnabled
             ? UIScrollViewDecelerationRateFast
             : UIScrollViewDecelerationRateNormal;
-    scrollView.bounces = YES;
-    scrollView.alwaysBounceHorizontal = YES;
+    scrollView.bounces = IF16ScrollingEnabled();
+    scrollView.alwaysBounceHorizontal = IF16ScrollingEnabled();
     scrollView.alwaysBounceVertical = NO;
     scrollView.showsHorizontalScrollIndicator = NO;
     scrollView.showsVerticalScrollIndicator = NO;
@@ -481,6 +490,17 @@ static void IF16LayoutDock(SBDockIconListView *listView) {
         }
     }
     scrollView.frame = scrollFrame;
+    // Fixed mode deliberately leaves the icon model intact while making the
+    // Dock non-scrollable. Only the selected visible slots are on screen.
+    if (!IF16ScrollingEnabled()) {
+        scrollView.scrollEnabled = NO;
+        scrollView.pagingEnabled = NO;
+        scrollView.bounces = NO;
+        scrollView.alwaysBounceHorizontal = NO;
+        if (!CGPointEqualToPoint(scrollView.contentOffset, CGPointZero)) {
+            scrollView.contentOffset = CGPointZero;
+        }
+    }
     listView.clipsToBounds = NO;
     scrollView.clipsToBounds = YES;
     CGFloat backgroundCornerRadius =
