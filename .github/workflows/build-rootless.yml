@@ -6,6 +6,11 @@ on:
     branches:
       - main
 
+# Prevent outdated builds from publishing over the newest release.
+concurrency:
+  group: slideydock16-release-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
@@ -52,18 +57,41 @@ jobs:
             dist/SHA256SUMS
           if-no-files-found: error
 
-      - name: Publish deb to GitHub Releases
+      - name: Publish latest deb only (no description)
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           tag="v1.3.0"
+          deb="$(find dist -maxdepth 1 -type f -name '*.deb' -print -quit)"
+          test -n "$deb"
+          deb_name="$(basename "$deb")"
+
           if gh release view "$tag" >/dev/null 2>&1; then
-            gh release upload "$tag" dist/*.deb dist/SHA256SUMS --clobber
+            gh release upload "$tag" "$deb" --clobber
+            gh release edit "$tag" --notes ""
           else
-            gh release create "$tag" dist/*.deb dist/SHA256SUMS \
+            gh release create "$tag" "$deb" \
               --target "$GITHUB_SHA" \
               --title "SlideyDock16 v1.3.0 — iOS 16 rootless" \
-              --notes "Rootless iOS 15–16 scrolling dock. Supports 100 dock apps with selectable 4, 5 or 6 visible at once, plus page snapping or continuous swiping. Full source included in this repository. Rootless iOS 15-16; on-device verification recommended."
+              --notes ""
           fi
+
+          # Remove any extra assets (such as older .deb files or checksums)
+          # from the active release: just one installable deb remains.
+          while IFS= read -r asset; do
+            if [[ -n "$asset" && "$asset" != "$deb_name" ]]; then
+              gh release delete-asset "$tag" "$asset" --yes
+            fi
+          done < <(gh release view "$tag" --json assets --jq '.assets[].name')
+
+          # Retain only the newest SlideyDock16 release and tag.
+          while IFS= read -r previous_tag; do
+            if [[ -n "$previous_tag" && "$previous_tag" != "$tag" ]]; then
+              gh release delete "$previous_tag" --yes --cleanup-tag
+            fi
+          done < <(gh release list --limit 100 --json tagName --jq '.[].tagName')
+
+          # Existing release may have been created by an older workflow.
+          gh release edit "$tag" --notes ""
