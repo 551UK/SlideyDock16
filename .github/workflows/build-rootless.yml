@@ -31,9 +31,28 @@ jobs:
       - name: Install Theos
         run: git clone --recursive --depth 1 https://github.com/theos/theos.git "$THEOS"
 
+      - name: Normalize Settings icons to RGBA (same artwork)
+        shell: bash
+        run: |
+          set -euo pipefail
+          for suffix in "" "@2x" "@3x"; do
+            source_icon="preferences/Resources/icon${suffix}.png"
+            python3 scripts/normalize_settings_icon.py "$source_icon"
+            cp "$source_icon" "layout/Library/PreferenceLoader/Preferences/SlideyDock16${suffix}.png"
+          done
+          git add preferences/Resources/icon*.png \
+                  layout/Library/PreferenceLoader/Preferences/SlideyDock16*.png
+          if ! git diff --cached --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "Normalize SlideyDock Settings icon images to RGBA without changing design"
+            git push origin HEAD:main
+          fi
+
       - name: Build iOS 16 rootless deb (arm64 and arm64e)
         run: |
           test -s preferences/Resources/icon@3x.png
+          file preferences/Resources/icon@3x.png | grep -q RGBA
           test -s layout/Library/PreferenceLoader/Preferences/SlideyDock16@3x.png
           bash build.sh
 
@@ -44,7 +63,7 @@ jobs:
           deb="$(find dist -type f -name '*.deb' -print -quit)"
           test -n "$deb"
           test "$(dpkg-deb -f "$deb" Package)" = "uk.551.slideydock16"
-          test "$(dpkg-deb -f "$deb" Version)" = "1.4.1-1"
+          test "$(dpkg-deb -f "$deb" Version)" = "1.4.2-1"
           test "$(dpkg-deb -f "$deb" Architecture)" = "iphoneos-arm64"
           test -f dist/SHA256SUMS
           dylib="$(find .theos -name SlideyDock16.dylib -type f -print -quit)"
@@ -61,7 +80,7 @@ jobs:
             test -n "$list_icon" && test -s "$list_icon"
             test -n "$bundle_icon" && test -s "$bundle_icon"
             cmp "$list_icon" "$bundle_icon"
-            file "$list_icon" | grep -q "PNG image data"
+            file "$list_icon" | grep -q "RGBA"
             echo "Verified installed Settings icon: $list_icon"
           done
           settings_entry="$(find "$unpacked" -type f -path "*/Library/PreferenceLoader/Preferences/SlideyDock16.plist" -print -quit)"
@@ -84,7 +103,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          tag="v1.4.1"
+          tag="v1.4.2"
           deb="$(find dist -maxdepth 1 -type f -name '*.deb' -print -quit)"
           test -n "$deb"
           deb_name="$(basename "$deb")"
