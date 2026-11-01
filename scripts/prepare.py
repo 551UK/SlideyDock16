@@ -25,13 +25,49 @@ def change(relative, replacements):
 core = (root / "Tweak.xm").read_text(encoding="utf-8")
 assert "static const NSUInteger IF16MaximumDockIcons = 100;" in core, "Upstream icon limit has changed"
 assert "static const NSUInteger IF16DefaultIconsPerPage = 4;" in core, "Upstream visible-icon count has changed"
+# Visible icons is independent of the 100-icon dock capacity.
+# Patch every geometry and paging site in the pinned upstream source.
+source = (root / "Tweak.xm").read_text(encoding="utf-8")
+insertion_point = "static void IF16WriteDiagnostics("
+assert source.count(insertion_point) == 1
+visible_icons_function = """static NSUInteger IF16IconsPerPage(void) {
+    static NSUInteger visibleIcons = IF16DefaultIconsPerPage;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        id value = IF16PreferenceValue(@"VisibleIconsPerPage");
+        visibleIcons = ([value respondsToSelector:@selector(integerValue)] &&
+                        [value integerValue] == 5) ? 5 : 4;
+    });
+    return visibleIcons;
+}
+
+"""
+source = source.replace(insertion_point, visible_icons_function + insertion_point, 1)
+before_diagnostics, after_diagnostics = source.split(insertion_point, 1)
+assert after_diagnostics.count("IF16DefaultIconsPerPage") == 6, "Upstream icon layout has changed"
+after_diagnostics = after_diagnostics.replace("IF16DefaultIconsPerPage", "IF16IconsPerPage()")
+source = before_diagnostics + insertion_point + after_diagnostics
+source = source.replace(
+    "four fixed-width slots per scroll page",
+    "four or five fixed-width slots per scroll page"
+)
+source = source.replace(
+    'report[@"PagingEnabled"] = @(IF16PagingEnabled());',
+    'report[@"PagingEnabled"] = @(IF16PagingEnabled());\n    report[@"VisibleIconsPerPage"] = @(IF16IconsPerPage());'
+)
+source = source.replace('report[@"Build"] = @"1.0.0-1";', 'report[@"Build"] = @"1.1.0-1";')
+assert source.count("IF16DefaultIconsPerPage") == 2, "Default icon count must remain the fallback"
+assert source.count("IF16IconsPerPage()") == 7, "All six layout sites and diagnostics must use the setting"
+(root / "Tweak.xm").write_text(source, encoding="utf-8")
+
 change("Tweak.xm", [(OLD_ID, NEW_ID)])
 
 change("control", [
+    ("Version: 1.0.0-1", "Version: 1.1.0-1"),
     ("Package: " + OLD_ID, "Package: " + NEW_ID),
     ("Name: Infinidock 16 Revival", "Name: SlideyDock16"),
     ("Description: Scroll beyond four Dock icons on iOS 15/16. An unofficial rootless revival of chpwn's classic Infinidock with paging and continuous scrolling modes.",
-     "Description: Sliding native Dock with up to 100 apps; four visible icons, page snapping or continuous scrolling on iOS 15/16."),
+     "Description: Sliding native Dock with up to 100 apps; selectable four or five visible icons, paging or continuous scrolling on iOS 15/16."),
     ("Maintainer: JaySuen", "Maintainer: 551UK"),
     ("Author: chpwn, subdiox, JaySuen", "Author: chpwn, subdiox, JaySuen, 551UK"),
     ("Conflicts: com.subdiox.infinidock", "Conflicts: com.subdiox.infinidock, " + OLD_ID),
@@ -56,8 +92,10 @@ change("preferences/layout/Library/PreferenceLoader/Preferences/Infinidock16.pli
 plist = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict><key>items</key><array>
-<dict><key>cell</key><string>PSGroupCell</string><key>label</key><string>SlideyDock16</string><key>footerText</key><string>Swipe left or right across the Dock. Up to 100 apps, with four icons visible at once.</string></dict>
+<dict><key>cell</key><string>PSGroupCell</string><key>label</key><string>SlideyDock16</string><key>footerText</key><string>Swipe left or right across the Dock. Up to 100 apps, with 4 or 5 icons visible at once.</string></dict>
 <dict><key>cell</key><string>PSSwitchCell</string><key>defaults</key><string>uk.551.slideydock16</string><key>key</key><string>Enabled</string><key>default</key><true/><key>label</key><string>Enable SlideyDock16</string></dict>
+<dict><key>cell</key><string>PSGroupCell</string><key>label</key><string>Visible Dock Icons</string><key>footerText</key><string>Choose 4 or 5 icons across the Dock at once. You can still add up to 100 apps and swipe to see more.</string></dict>
+<dict><key>cell</key><string>PSSegmentCell</string><key>defaults</key><string>uk.551.slideydock16</string><key>key</key><string>VisibleIconsPerPage</string><key>default</key><integer>4</integer><key>validValues</key><array><integer>4</integer><integer>5</integer></array><key>validTitles</key><array><string>4 Icons</string><string>5 Icons</string></array></dict>
 <dict><key>cell</key><string>PSGroupCell</string><key>label</key><string>Scrolling Mode</string><key>footerText</key><string>Pages snap to groups of icons. Continuous lets scrolling stop between icons.</string></dict>
 <dict><key>cell</key><string>PSSegmentCell</string><key>defaults</key><string>uk.551.slideydock16</string><key>key</key><string>PagingEnabled</string><key>default</key><true/><key>validValues</key><array><true/><false/></array><key>validTitles</key><array><string>Pages</string><string>Continuous</string></array></dict>
 <dict><key>cell</key><string>PSGroupCell</string><key>footerText</key><string>Settings take effect after a respring. Disable any other tweak that changes the Dock layout.</string></dict>
@@ -69,5 +107,5 @@ plist = """<?xml version="1.0" encoding="UTF-8"?>
 prefs = root / "preferences/Resources/Root.plist"
 prefs.write_text(plist, encoding="utf-8")
 with prefs.open("rb") as f:
-    assert len(plistlib.load(f)["items"]) == 8
-print("SlideyDock16 English settings, metadata, and 100-icon limit verified")
+    assert len(plistlib.load(f)["items"]) == 10
+print("SlideyDock16 settings (4/5 visible icons), metadata, and 100-icon capacity verified")
