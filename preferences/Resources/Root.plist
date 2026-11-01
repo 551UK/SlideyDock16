@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict><key>items</key><array>
+<dict><key>cell</key><string>PSGroupCell</string><key>label</key><string>SlideyDock16</string><key>footerText</key><string>Swipe across the Dock. Keep up to 100 apps, with 4 or 5 icons visible at once.</string></dict>
+<dict><key>cell</key><string>PSSwitchCell</string><key>defaults</key><string>uk.551.slideydock16</string><key>key</key><string>Enabled</string><key>default</key><true/><key>label</key><string>Enable SlideyDock16</string></dict>
+<dict><key>cell</key><string>PSGroupCell</string><key>label</key><string>Visible Dock Icons</string><key>footerText</key><string>Select 4 or 5 icons across the Dock. Total capacity stays at 100.</string></dict>
+<dict><key>cell</key><string>PSSegmentCell</string><key>defaults</key><string>uk.551.slideydock16</string><key>key</key><string>VisibleIconsPerPage</string><key>default</key><integer>4</integer><key>validValues</key><array><integer>4</integer><integer>5</integer></array><key>validTitles</key><array><string>4 Icons</string><string>5 Icons</string></array></dict>
+<dict><key>cell</key><string>PSGroupCell</string><key>label</key><string>Scrolling Mode</string><key>footerText</key><string>Pages snap into place; Continuous allows free scrolling.</string></dict>
+<dict><key>cell</key><string>PSSegmentCell</string><key>defaults</key><string>uk.551.slideydock16</string><key>key</key><string>PagingEnabled</string><key>default</key><true/><key>validValues</key><array><true/><false/></array><key>validTitles</key><array><string>Pages</string><string>Continuous</string></array></dict>
+<dict><key>cell</key><string>PSGroupCell</string><key>footerText</key><string>Settings take effect after a respring. Disable other Dock-layout tweaks to avoid conflicts.</string></dict>
+<dict><key>cell</key><string>PSButtonCell</string><key>action</key><string>respring:</string><key>label</key><string>Apply and Respring</string></dict>
+<dict><key>cell</key><string>PSButtonCell</string><key>action</key><string>openProjectSource:</string><key>label</key><string>GitHub Repository</string></dict>
+</array></dict></plist>

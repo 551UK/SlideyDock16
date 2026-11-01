@@ -1,0 +1,13 @@
+Package: uk.551.slideydock16
+Name: SlideyDock16
+Version: 1.2.0-1
+Architecture: iphoneos-arm64
+Description: Scrollable Dock for iOS 15-16 with 100-app capacity, selectable 4 or 5 visible icons, and paging or continuous scrolling.
+Maintainer: 551UK
+Author: 551UK
+Section: Tweaks
+Depends: firmware (>= 15.0), firmware (<< 17.0), mobilesubstrate, preferenceloader
+Conflicts: com.subdiox.infinidock, dev.infinidock16.revival
+License: BSD-2-Clause
+Tag: purpose::extension
+Homepage: https://github.com/551UK/SlideyDock16
