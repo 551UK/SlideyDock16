@@ -31,28 +31,6 @@ jobs:
       - name: Install Theos
         run: git clone --recursive --depth 1 https://github.com/theos/theos.git "$THEOS"
 
-      - name: Restore Settings icon files to main
-        shell: bash
-        run: |
-          set -euo pipefail
-          upstream="https://raw.githubusercontent.com/elevenY123/Infinidock16-test/ea8dd05cd119b8a57ca35cd87c4161dad45db7a9/preferences/Resources"
-          mkdir -p preferences/Resources preferences/layout/Library/PreferenceLoader/Preferences
-          for suffix in "" "@2x" "@3x"; do
-            curl --fail --location --silent --show-error --retry 3 \
-              "$upstream/icon$suffix.png" -o "preferences/Resources/icon$suffix.png"
-            cp "preferences/Resources/icon$suffix.png" \
-              "preferences/layout/Library/PreferenceLoader/Preferences/SlideyDock16$suffix.png"
-          done
-          test -s preferences/Resources/icon@3x.png
-          git add preferences/Resources/icon*.png \
-            preferences/layout/Library/PreferenceLoader/Preferences/SlideyDock16*.png
-          if ! git diff --cached --quiet; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -m "Restore SlideyDock16 Settings icon assets"
-            git push origin HEAD:main
-          fi
-
       - name: Build iOS 16 rootless deb (arm64 and arm64e)
         run: |
           test -s preferences/Resources/icon@3x.png
