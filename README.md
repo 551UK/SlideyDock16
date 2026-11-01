@@ -1,7 +1,6 @@
 # SlideyDock16
 
-A horizontally scrolling iPhone dock for **iOS 16 rootless**, supporting **up to 100 app icons** with **4 or 5 icons visible at once**, selectable in Settings.
-
+A horizontally scrolling iPhone dock made and tested on **iOS 16 rootless** but may work with other iOS versions.
 
 
 - Adjustable Dock Capacity: Choose between 4, 5 or 6 visible Dock icons without restricting the total number of apps.
