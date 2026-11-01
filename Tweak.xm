@@ -92,7 +92,7 @@ static NSUInteger IF16IconsPerPage(void) {
 static void IF16WriteDiagnostics(NSString *phase, SBDockIconListView *listView) {
     NSFileManager *fileManager = NSFileManager.defaultManager;
     NSMutableDictionary *report = [NSMutableDictionary dictionary];
-    report[@"Build"] = @"1.4.3-1";
+    report[@"Build"] = @"1.4.4-1";
     report[@"Phase"] = phase ?: @"unknown";
     report[@"Timestamp"] = [NSDate date];
     report[@"SystemVersion"] = NSProcessInfo.processInfo.operatingSystemVersionString;

@@ -45,7 +45,7 @@ jobs:
           deb="$(find dist -type f -name '*.deb' -print -quit)"
           test -n "$deb"
           test "$(dpkg-deb -f "$deb" Package)" = "uk.551.slideydock16"
-          test "$(dpkg-deb -f "$deb" Version)" = "1.4.3-1"
+          test "$(dpkg-deb -f "$deb" Version)" = "1.4.4-1"
           test "$(dpkg-deb -f "$deb" Architecture)" = "iphoneos-arm64"
           test -f dist/SHA256SUMS
           dylib="$(find .theos -name SlideyDock16.dylib -type f -print -quit)"
@@ -70,7 +70,9 @@ jobs:
             icon="$bundle/icon${suffix}.png"
             test -s "$icon"
             file "$icon" | grep -q "PNG image data"
-            echo "Verified Preferences bundle icon: $icon"
+            file "$icon" | grep -q "RGBA"
+            cmp "preferences/Resources/icon${suffix}.png" "$icon"
+            echo "Verified three-square artwork in Preferences bundle: $icon"
           done
           # We no longer install any redundant SlideyDock16.png icons.
           test ! -e "$root/Library/PreferenceLoader/Preferences/SlideyDock16.png"
@@ -90,7 +92,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          tag="v1.4.3"
+          tag="v1.4.4"
           deb="$(find dist -maxdepth 1 -type f -name '*.deb' -print -quit)"
           test -n "$deb"
           deb_name="$(basename "$deb")"
