@@ -44,7 +44,7 @@ visible_icons_function = """static NSUInteger IF16IconsPerPage(void) {
 """
 source = source.replace(insertion_point, visible_icons_function + insertion_point, 1)
 before_diagnostics, after_diagnostics = source.split(insertion_point, 1)
-assert after_diagnostics.count("IF16DefaultIconsPerPage") == 6, "Upstream icon layout has changed"
+assert after_diagnostics.count("IF16DefaultIconsPerPage") == 7, "Upstream icon layout has changed"
 after_diagnostics = after_diagnostics.replace("IF16DefaultIconsPerPage", "IF16IconsPerPage()")
 source = before_diagnostics + insertion_point + after_diagnostics
 source = source.replace(
@@ -57,7 +57,7 @@ source = source.replace(
 )
 source = source.replace('report[@"Build"] = @"1.0.0-1";', 'report[@"Build"] = @"1.1.0-1";')
 assert source.count("IF16DefaultIconsPerPage") == 2, "Default icon count must remain the fallback"
-assert source.count("IF16IconsPerPage()") == 7, "All six layout sites and diagnostics must use the setting"
+assert source.count("IF16IconsPerPage()") == 8, "All seven layout sites and diagnostics must use the setting"
 (root / "Tweak.xm").write_text(source, encoding="utf-8")
 
 change("Tweak.xm", [(OLD_ID, NEW_ID)])
