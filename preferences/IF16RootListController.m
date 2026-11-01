@@ -55,11 +55,17 @@ extern char **environ;
     emblem.layer.cornerRadius = 15;
     [hero addSubview:emblem];
 
-    UIImage *symbol = [UIImage systemImageNamed:@"square.grid.3x1.fill"];
+    // Use the same restored icon as SlideyDock16's entry in Settings.
+    UIImage *symbol = [UIImage imageNamed:@"icon"
+                                 inBundle:[NSBundle bundleForClass:self.class]
+            compatibleWithTraitCollection:nil];
+    BOOL hasProjectIcon = symbol != nil;
+    if (!symbol) symbol = [UIImage systemImageNamed:@"square.grid.3x1.fill"];
     if (!symbol) symbol = [UIImage systemImageNamed:@"square.grid.2x2.fill"];
     UIImageView *icon = [[UIImageView alloc] initWithImage:symbol];
     icon.translatesAutoresizingMaskIntoConstraints = NO;
-    icon.tintColor = UIColor.whiteColor;
+    icon.tintColor = hasProjectIcon ? nil : UIColor.whiteColor;
+    icon.image = hasProjectIcon ? [symbol imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] : symbol;
     icon.contentMode = UIViewContentModeScaleAspectFit;
     [emblem addSubview:icon];
 
@@ -86,8 +92,8 @@ extern char **environ;
         [emblem.heightAnchor constraintEqualToConstant:54],
         [icon.centerXAnchor constraintEqualToAnchor:emblem.centerXAnchor],
         [icon.centerYAnchor constraintEqualToAnchor:emblem.centerYAnchor],
-        [icon.widthAnchor constraintEqualToConstant:28],
-        [icon.heightAnchor constraintEqualToConstant:28],
+        [icon.widthAnchor constraintEqualToConstant:42],
+        [icon.heightAnchor constraintEqualToConstant:42],
         [title.leadingAnchor constraintEqualToAnchor:emblem.trailingAnchor constant:15],
         [title.trailingAnchor constraintLessThanOrEqualToAnchor:hero.trailingAnchor constant:-12],
         [title.bottomAnchor constraintEqualToAnchor:hero.centerYAnchor constant:-2],
