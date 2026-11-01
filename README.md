@@ -3,6 +3,7 @@
 A horizontally scrolling iPhone dock made and tested on **iOS 16 rootless** but may work with other iOS versions.
 
 
+
 - Adjustable Dock Capacity: Choose between 4, 5 or 6 visible Dock icons without restricting the total number of apps.
 - Up to 100 Apps: Add up to 100 apps to your Dock for quick and convenient access.
 - Native iOS Appearance: Preserves the original Dock design, spacing and animations for a seamless experience.
