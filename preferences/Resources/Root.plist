@@ -8,7 +8,7 @@
         <dict>
             <key>cell</key><string>PSGroupCell</string>
             <key>label</key><string>GENERAL</string>
-            <key>footerText</key><string>Enable the sliding Dock and keep your favourite apps close.</string>
+            <key>footerText</key><string>Enable SlideyDock16 and customise the Dock layout.</string>
         </dict>
         <dict>
             <key>cell</key><string>PSSwitchCell</string>
@@ -20,7 +20,7 @@
         <dict>
             <key>cell</key><string>PSGroupCell</string>
             <key>label</key><string>DOCK LAYOUT</string>
-            <key>footerText</key><string>Choose how many icons are visible at once. The Dock can still hold up to 100 apps, accessed by swiping.</string>
+            <key>footerText</key><string>Choose how many icons appear across the Dock. Turning scrolling off shows only the selected icons without deleting others.</string>
         </dict>
         <dict>
             <key>cell</key><string>PSSegmentCell</string>
@@ -33,7 +33,14 @@
         <dict>
             <key>cell</key><string>PSGroupCell</string>
             <key>label</key><string>SCROLLING</string>
-            <key>footerText</key><string>Pages snap to groups of icons. Continuous lets you scroll freely.</string>
+            <key>footerText</key><string>Turn this off for a fixed 4, 5 or 6-icon Dock. Extra apps stay saved and reappear when you enable scrolling again. Pages and Continuous apply only while scrolling is enabled.</string>
+        </dict>
+        <dict>
+            <key>cell</key><string>PSSwitchCell</string>
+            <key>label</key><string>Enable Scrolling</string>
+            <key>defaults</key><string>uk.551.slideydock16</string>
+            <key>key</key><string>ScrollingEnabled</string>
+            <key>default</key><true/>
         </dict>
         <dict>
             <key>cell</key><string>PSSegmentCell</string>
@@ -56,7 +63,7 @@
         <dict>
             <key>cell</key><string>PSGroupCell</string>
             <key>label</key><string>PROJECT</string>
-            <key>footerText</key><string>Made for iOS 15–16 by 551UK.</string>
+            <key>footerText</key><string>Made by 551</string>
             <key>footerAlignment</key><integer>1</integer>
         </dict>
         <dict>
