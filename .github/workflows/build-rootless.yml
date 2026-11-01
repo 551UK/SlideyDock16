@@ -8,7 +8,7 @@ on:
 
 # Prevent outdated builds from publishing over the newest release.
 concurrency:
-  group: slideydock16-release-${{ github.ref }}
+  group: slideydock16-release-rgba-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
