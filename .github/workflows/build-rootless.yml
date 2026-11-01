@@ -31,29 +31,11 @@ jobs:
       - name: Install Theos
         run: git clone --recursive --depth 1 https://github.com/theos/theos.git "$THEOS"
 
-      - name: Normalize Settings icons to RGBA (same artwork)
-        shell: bash
-        run: |
-          set -euo pipefail
-          for suffix in "" "@2x" "@3x"; do
-            source_icon="preferences/Resources/icon${suffix}.png"
-            python3 scripts/normalize_settings_icon.py "$source_icon"
-            cp "$source_icon" "layout/Library/PreferenceLoader/Preferences/SlideyDock16${suffix}.png"
-          done
-          git add preferences/Resources/icon*.png \
-                  layout/Library/PreferenceLoader/Preferences/SlideyDock16*.png
-          if ! git diff --cached --quiet; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -m "Normalize SlideyDock Settings icon images to RGBA without changing design"
-            git push origin HEAD:main
-          fi
-
       - name: Build iOS 16 rootless deb (arm64 and arm64e)
         run: |
+          test -s preferences/Resources/icon.png
+          test -s preferences/Resources/icon@2x.png
           test -s preferences/Resources/icon@3x.png
-          file preferences/Resources/icon@3x.png | grep -q RGBA
-          test -s layout/Library/PreferenceLoader/Preferences/SlideyDock16@3x.png
           bash build.sh
 
       - name: Verify build and package
@@ -63,30 +45,35 @@ jobs:
           deb="$(find dist -type f -name '*.deb' -print -quit)"
           test -n "$deb"
           test "$(dpkg-deb -f "$deb" Package)" = "uk.551.slideydock16"
-          test "$(dpkg-deb -f "$deb" Version)" = "1.4.2-1"
+          test "$(dpkg-deb -f "$deb" Version)" = "1.4.3-1"
           test "$(dpkg-deb -f "$deb" Architecture)" = "iphoneos-arm64"
           test -f dist/SHA256SUMS
           dylib="$(find .theos -name SlideyDock16.dylib -type f -print -quit)"
           test -n "$dylib"
           lipo -info "$dylib"
 
-          # Validate the files inside the actual deb, not just the source tree.
+          # Same PreferenceLoader registration as the working OBDeleven tweak:
+          # icon.png is resolved from SlideyDock16Prefs.bundle/Resources.
           unpacked="$(mktemp -d)"
           trap 'rm -rf "$unpacked"' EXIT
           dpkg-deb -x "$deb" "$unpacked"
+          root="$unpacked/var/jb"
+          entry="$root/Library/PreferenceLoader/Preferences/SlideyDock16.plist"
+          bundle="$root/Library/PreferenceBundles/SlideyDock16Prefs.bundle"
+          test -s "$entry"
+          test -s "$bundle/Info.plist"
+          test -s "$bundle/Root.plist"
+          test -s "$bundle/SlideyDock16Prefs"
+          test "$(plutil -extract entry.bundle raw -o - "$entry")" = "SlideyDock16Prefs"
+          test "$(plutil -extract entry.icon raw -o - "$entry")" = "icon.png"
           for suffix in "" "@2x" "@3x"; do
-            list_icon="$(find "$unpacked" -type f -path "*/Library/PreferenceLoader/Preferences/SlideyDock16${suffix}.png" -print -quit)"
-            bundle_icon="$(find "$unpacked" -type f -path "*/Library/PreferenceBundles/SlideyDock16Prefs.bundle/icon${suffix}.png" -print -quit)"
-            test -n "$list_icon" && test -s "$list_icon"
-            test -n "$bundle_icon" && test -s "$bundle_icon"
-            cmp "$list_icon" "$bundle_icon"
-            file "$list_icon" | grep -q "RGBA"
-            echo "Verified installed Settings icon: $list_icon"
+            icon="$bundle/icon${suffix}.png"
+            test -s "$icon"
+            file "$icon" | grep -q "PNG image data"
+            echo "Verified Preferences bundle icon: $icon"
           done
-          settings_entry="$(find "$unpacked" -type f -path "*/Library/PreferenceLoader/Preferences/SlideyDock16.plist" -print -quit)"
-          test -n "$settings_entry" && test -s "$settings_entry"
-          # PreferenceLoader plists can be compiled to binary by the packager.
-          plutil -p "$settings_entry" | grep -Fq "SlideyDock16.png"
+          # We no longer install any redundant SlideyDock16.png icons.
+          test ! -e "$root/Library/PreferenceLoader/Preferences/SlideyDock16.png"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -103,7 +90,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          tag="v1.4.2"
+          tag="v1.4.3"
           deb="$(find dist -maxdepth 1 -type f -name '*.deb' -print -quit)"
           test -n "$deb"
           deb_name="$(basename "$deb")"

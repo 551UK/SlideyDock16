@@ -56,16 +56,13 @@ extern char **environ;
     [hero addSubview:emblem];
 
     // Use the same restored icon as SlideyDock16's entry in Settings.
+    NSBundle *bundle = [NSBundle bundleForClass:[IF16RootListController class]];
     UIImage *symbol = [UIImage imageNamed:@"icon"
-                                 inBundle:[NSBundle bundleForClass:self.class]
-            compatibleWithTraitCollection:nil];
-    BOOL hasProjectIcon = symbol != nil;
-    if (!symbol) symbol = [UIImage systemImageNamed:@"square.grid.3x1.fill"];
-    if (!symbol) symbol = [UIImage systemImageNamed:@"square.grid.2x2.fill"];
+                                 inBundle:bundle
+            compatibleWithTraitCollection:self.traitCollection];
     UIImageView *icon = [[UIImageView alloc] initWithImage:symbol];
     icon.translatesAutoresizingMaskIntoConstraints = NO;
-    icon.tintColor = hasProjectIcon ? nil : UIColor.whiteColor;
-    icon.image = hasProjectIcon ? [symbol imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] : symbol;
+    icon.image = [symbol imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
     icon.contentMode = UIViewContentModeScaleAspectFit;
     [emblem addSubview:icon];
 
