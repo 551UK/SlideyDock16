@@ -34,7 +34,7 @@ jobs:
       - name: Build iOS 16 rootless deb (arm64 and arm64e)
         run: |
           test -s preferences/Resources/icon@3x.png
-          test -s preferences/layout/Library/PreferenceLoader/Preferences/SlideyDock16@3x.png
+          test -s layout/Library/PreferenceLoader/Preferences/SlideyDock16@3x.png
           bash build.sh
 
       - name: Verify build and package
@@ -44,12 +44,29 @@ jobs:
           deb="$(find dist -type f -name '*.deb' -print -quit)"
           test -n "$deb"
           test "$(dpkg-deb -f "$deb" Package)" = "uk.551.slideydock16"
-          test "$(dpkg-deb -f "$deb" Version)" = "1.4.0-1"
+          test "$(dpkg-deb -f "$deb" Version)" = "1.4.1-1"
           test "$(dpkg-deb -f "$deb" Architecture)" = "iphoneos-arm64"
           test -f dist/SHA256SUMS
           dylib="$(find .theos -name SlideyDock16.dylib -type f -print -quit)"
           test -n "$dylib"
           lipo -info "$dylib"
+
+          # Validate the files inside the actual deb, not just the source tree.
+          unpacked="$(mktemp -d)"
+          trap 'rm -rf "$unpacked"' EXIT
+          dpkg-deb -x "$deb" "$unpacked"
+          for suffix in "" "@2x" "@3x"; do
+            list_icon="$(find "$unpacked" -type f -path "*/Library/PreferenceLoader/Preferences/SlideyDock16${suffix}.png" -print -quit)"
+            bundle_icon="$(find "$unpacked" -type f -path "*/Library/PreferenceBundles/SlideyDock16Prefs.bundle/icon${suffix}.png" -print -quit)"
+            test -n "$list_icon" && test -s "$list_icon"
+            test -n "$bundle_icon" && test -s "$bundle_icon"
+            cmp "$list_icon" "$bundle_icon"
+            file "$list_icon" | grep -q "PNG image data"
+            echo "Verified installed Settings icon: $list_icon"
+          done
+          settings_entry="$(find "$unpacked" -type f -path "*/Library/PreferenceLoader/Preferences/SlideyDock16.plist" -print -quit)"
+          test -n "$settings_entry" && test -s "$settings_entry"
+          grep -q "<string>SlideyDock16.png</string>" "$settings_entry"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -66,7 +83,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          tag="v1.4.0"
+          tag="v1.4.1"
           deb="$(find dist -maxdepth 1 -type f -name '*.deb' -print -quit)"
           test -n "$deb"
           deb_name="$(basename "$deb")"
