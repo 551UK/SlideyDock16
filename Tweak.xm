@@ -74,8 +74,10 @@ static NSUInteger IF16IconsPerPage(void) {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         id value = IF16PreferenceValue(@"VisibleIconsPerPage");
-        visibleIcons = ([value respondsToSelector:@selector(integerValue)] &&
-                        [value integerValue] == 5) ? 5 : 4;
+        NSInteger selected = [value respondsToSelector:@selector(integerValue)]
+            ? [value integerValue] : 4;
+        visibleIcons = (selected >= 4 && selected <= 6)
+            ? (NSUInteger)selected : IF16DefaultIconsPerPage;
     });
     return visibleIcons;
 }
@@ -83,7 +85,7 @@ static NSUInteger IF16IconsPerPage(void) {
 static void IF16WriteDiagnostics(NSString *phase, SBDockIconListView *listView) {
     NSFileManager *fileManager = NSFileManager.defaultManager;
     NSMutableDictionary *report = [NSMutableDictionary dictionary];
-    report[@"Build"] = @"1.2.0-1";
+    report[@"Build"] = @"1.3.0-1";
     report[@"Phase"] = phase ?: @"unknown";
     report[@"Timestamp"] = [NSDate date];
     report[@"SystemVersion"] = NSProcessInfo.processInfo.operatingSystemVersionString;
@@ -590,7 +592,7 @@ static void IF16ScheduleDeferredLayout(SBDockIconListView *listView) {
     /*
      * SpringBoard coordinates are one-based. The provider still exposes a
      * large single row so the model accepts more than four icons, but the
-     * final origin is calculated as four or five fixed-width slots per scroll page.
+     * final origin is calculated as four, five, or six fixed-width slots per scroll page.
      * Hooking this final calculation prevents a later SpringBoard layout pass
      * from compressing every icon into the first page.
      */
