@@ -77,7 +77,7 @@ jobs:
           else
             gh release create "$tag" "$deb" \
               --target "$GITHUB_SHA" \
-              --title "SlideyDock16 v1.4.0 — iOS 16 rootless" \
+              --title "SlideyDock16 $tag" \
               --notes ""
           fi
 
