@@ -2,19 +2,9 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-UPSTREAM="https://github.com/elevenY123/Infinidock16-test.git"
-PINNED_COMMIT="ea8dd05cd119b8a57ca35cd87c4161dad45db7a9"
+cd "$ROOT"
 
-if [ -e "$ROOT/vendor" ]; then
-  echo "Please delete vendor/ before running a fresh build." >&2
-  exit 1
-fi
-
-git clone "$UPSTREAM" "$ROOT/vendor"
-git -C "$ROOT/vendor" checkout --detach "$PINNED_COMMIT"
-python3 "$ROOT/scripts/prepare.py" "$ROOT/vendor"
-
-cd "$ROOT/vendor"
+# Build the complete SlideyDock16 source stored in this repository.
 make clean package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
 
 mkdir -p "$ROOT/dist"
