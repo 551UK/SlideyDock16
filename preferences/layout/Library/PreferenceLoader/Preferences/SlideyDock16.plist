@@ -10,6 +10,8 @@
         <string>PSLinkCell</string>
         <key>detail</key>
         <string>IF16RootListController</string>
+        <key>icon</key>
+        <string>SlideyDock16.png</string>
         <key>isController</key>
         <true/>
         <key>label</key>
