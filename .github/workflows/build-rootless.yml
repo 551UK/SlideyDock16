@@ -66,7 +66,8 @@ jobs:
           done
           settings_entry="$(find "$unpacked" -type f -path "*/Library/PreferenceLoader/Preferences/SlideyDock16.plist" -print -quit)"
           test -n "$settings_entry" && test -s "$settings_entry"
-          grep -q "<string>SlideyDock16.png</string>" "$settings_entry"
+          # PreferenceLoader plists can be compiled to binary by the packager.
+          plutil -p "$settings_entry" | grep -Fq "SlideyDock16.png"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
