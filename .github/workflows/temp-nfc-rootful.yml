@@ -22,7 +22,7 @@ jobs:
         run: |
           set -euo pipefail
           cd nfc
-          make clean package FINALPACKAGE=1 ARCHS="arm64 arm64e"
+          make clean package FINALPACKAGE=1 ARCHS="arm64 arm64e" TARGET="iphone:clang:latest:13.0"
       - name: Validate deb and payload
         run: |
           set -euo pipefail
