@@ -18,6 +18,31 @@ jobs:
           git clone --recursive --depth 1 https://github.com/theos/theos.git "$THEOS"
       - name: Download upstream source
         run: git clone --depth 1 https://github.com/arandomdev/NFCBackgroundEnabler.git nfc
+      - name: Add missing Foundation and Substrate imports to legacy source
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          pre = '''#import <Foundation/Foundation.h>
+          #import <substrate.h>
+          #ifndef HBLogInfo
+          #define HBLogInfo(...) NSLog(__VA_ARGS__)
+          #endif
+          #ifndef HBLogError
+          #define HBLogError(...) NSLog(__VA_ARGS__)
+          #endif
+          #ifndef HBLogDebug
+          #define HBLogDebug(...) NSLog(__VA_ARGS__)
+          #endif
+          '''
+          paths = [
+              'nfc/Tweak.xm',
+              'nfc/NBETagLockProvider/NBETagLockProvider.mm',
+              'nfc/nfcbackgroundenablerpreferences/NBEPRootListController.m'
+          ]
+          for path in paths:
+              p = Path(path)
+              p.write_text(pre + p.read_text())
+          PY
       - name: Build original rootful package
         run: |
           set -euo pipefail
